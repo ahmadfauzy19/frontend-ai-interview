@@ -1,0 +1,137 @@
+.page {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 12px 0;
+}
+
+.tabbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: #f8fafc;
+}
+
+.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.content {
+  margin-top: 8px;
+}
+
+.lead {
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+/* Upload area */
+.uploadWrapper {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+.dropzone {
+  border: 2px dashed #e5e7eb;
+  padding: 28px;
+  text-align: center;
+  border-radius: 8px;
+  position: relative;
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.previewList {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.previewItem {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.previewMedia {
+  width: 100%;
+  border-radius: 6px;
+  max-height: 120px;
+}
+
+.previewFallback {
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.previewMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.filename {
+  font-size: 14px;
+  color: #111827;
+}
+
+.removeBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+.uploadActions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.secondary {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
