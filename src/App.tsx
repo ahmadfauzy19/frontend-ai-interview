@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import InterviewPage from './pages/interview'
 import './App.css'
 import SpeechToTextPage from './pages/speechToText'
 
@@ -8,7 +7,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/speech-to-text" element={<SpeechToTextPage />} />
-        <Route path="/interview" element={<InterviewPage />} />
         <Route path="/" element={<Navigate to="/speech-to-text" replace />} />
       </Routes>
     </BrowserRouter>

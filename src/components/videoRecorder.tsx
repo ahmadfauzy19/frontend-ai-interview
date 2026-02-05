@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import styles from "./VideoRecorder.module.css";
+import styles from "../assets/style/videoRecorder.module.css";
 import { useSpeechToText } from "./useSpeechToText";
 
 export default function VideoRecorder() {

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import styles from "../pages/speechToText.module.css";
+import styles from "../assets/style/speechToText.module.css";
+import { uploadMediaFiles } from "../services/uploadMediaService";
 
 type Preview = {
   file: File;
@@ -10,6 +11,8 @@ type Preview = {
 export default function UploadMedia() {
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [transcript, setTranscript] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
 
   const addFiles = useCallback((files: FileList | null) => {
     if (!files) return;
@@ -55,23 +58,21 @@ export default function UploadMedia() {
 
     setUploading(true);
     try {
-      const form = new FormData();
-      previews.forEach((p, i) => {
-        form.append("files", p.file, p.file.name);
-      });
+      const files = previews.map(p => p.file);
+      const response = await uploadMediaFiles(files);
 
-      await fetch("http://localhost:8081/api/media/upload", {
-        method: "POST",
-        body: form,
-      });
-
+      setTranscript(response.transcript);
+      setMessage(response.message);
       alert("File berhasil di-upload");
+      
       // clear previews
       previews.forEach(p => URL.revokeObjectURL(p.url));
       setPreviews([]);
     } catch (err) {
       console.error(err);
       alert("Gagal meng-upload file. Cek console untuk detail.");
+      setTranscript("");
+      setMessage("");
     } finally {
       setUploading(false);
     }
@@ -120,6 +121,17 @@ export default function UploadMedia() {
           {uploading ? "Uploading..." : "Upload Semua"}
         </button>
       </div>
+
+      {message && (
+        <div className={styles.resultWrapper}>
+          <h3>{message}</h3>
+          {transcript && (
+            <div className={styles.transcriptBox}>
+              <p>{transcript}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

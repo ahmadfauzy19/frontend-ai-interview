@@ -1,14 +1,14 @@
 import { useState } from "react";
 import VideoRecorder from "../components/videoRecorder";
-import UploadMedia from "../components/UploadMedia";
-import styles from "./speechToText.module.css";
+import UploadMedia from "../components/uploadMedia";
+import styles from "../assets/style/speechToText.module.css";
 
 export default function SpeechToTextPage() {
   const [tab, setTab] = useState<"record" | "upload">("record");
 
   return (
     <main className={styles.page}>
-      <h1 className={styles.title}>🎧 Speech & Media</h1>
+      <h1 className={styles.title}>AI INTERVIEW</h1>
 
       <div className={styles.tabbar} role="tablist">
         <button
@@ -40,7 +40,7 @@ export default function SpeechToTextPage() {
 
         {tab === "upload" && (
           <div>
-            <p className={styles.lead}>Anda dapat meng-upload file video atau musik. Pilih beberapa file sekaligus jika perlu.</p>
+            <p className={styles.lead}>Anda dapat meng-upload file video atau musik.</p>
             <UploadMedia />
           </div>
         )}
