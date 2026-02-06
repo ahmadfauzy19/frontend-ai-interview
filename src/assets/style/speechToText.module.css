@@ -1,137 +1,149 @@
+/* ================= PAGE ================= */
 .page {
-  padding: 24px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.title {
-  margin: 0 0 12px 0;
-}
-
-.tabbar {
+  width: 100%;
+  height: auto;
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  flex-direction: column;
 }
 
-.tab {
-  background: transparent;
-  border: 1px solid #e5e7eb;
-  padding: 8px 12px;
-  border-radius: 8px;
+/* ================= HEADER ================= */
+.header {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* ================= LAYOUT ================= */
+.layout {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  min-height: 550px;
+}
+
+/* ================= LEFT PANEL ================= */
+.leftPanel {
+  width: 360px;
+  padding: 24px;
+  background: #f7f9fb;
+  border-radius: 16px;
+  overflow-y: auto;
+}
+
+.leftPanel h3 {
+  margin-top: 0;
+}
+
+.questionItem {
+  display: block;
+  margin-bottom: 14px;
   cursor: pointer;
 }
 
-.tab:hover {
-  background: #f8fafc;
-}
-
-.active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-
-.content {
-  margin-top: 8px;
-}
-
-.lead {
-  color: #374151;
-  margin-bottom: 12px;
-}
-
-/* Upload area */
-.uploadWrapper {
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-}
-
-.dropzone {
-  border: 2px dashed #e5e7eb;
-  padding: 28px;
-  text-align: center;
+.activeQuestion {
+  margin-top: 20px;
+  padding: 12px;
   border-radius: 8px;
-  position: relative;
+  background: #eef2ff;
+  font-weight: 500;
 }
 
-.fileInput {
+/* ================= VIDEO PANEL ================= */
+.videoPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* VIDEO AREA */
+.videoWrapper {
+  flex: 1;
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: black;
+}
+
+.videoWrapper video {
   position: absolute;
   inset: 0;
-  opacity: 0;
   width: 100%;
   height: 100%;
-  cursor: pointer;
+  object-fit: cover; /* 🔥 biar full kaya Zoom */
+  background: black;
 }
 
-.previewList {
-  display: grid;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.previewItem {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #f3f4f6;
-}
-
-.previewMedia {
-  width: 100%;
+/* TIMER */
+.timer {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  color: white;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 10px;
   border-radius: 6px;
-  max-height: 120px;
-}
-
-.previewFallback {
-  padding: 8px;
-  background: #f9fafb;
-  border-radius: 6px;
-}
-
-.previewMeta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.filename {
   font-size: 14px;
-  color: #111827;
 }
 
-.removeBtn {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  cursor: pointer;
-}
-
-.uploadActions {
-  margin-top: 12px;
+/* CONTROLS */
+.controls {
+  padding: 16px;
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  gap: 12px;
 }
 
-.primary {
+.controls button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
   background: #2563eb;
   color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
 }
 
-.secondary {
-  background: #e5e7eb;
-  border: none;
-  padding: 8px 14px;
+.controls button:hover {
+  background: #1e40af;
+}
+
+/* ================= RESULT ================= */
+.resultBox {
+  margin: 24px;
+  padding: 16px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.resultBox pre {
+  margin: 0;
+  padding: 12px;
+  background: white;
   border-radius: 8px;
-  cursor: pointer;
+  overflow-x: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.loading {
+  margin: 16px;
+  font-weight: 500;
+}
+
+.error {
+  margin: 16px;
+  color: red;
 }
