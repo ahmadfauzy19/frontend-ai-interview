@@ -11,6 +11,8 @@ const STATIC_LEVELS: Pick<Level, "_id" | "level">[] = [
   { _id: "senior", level: "SENIOR" },
 ];
 
+
+
 export default function SpeechToTextPage() {
   const [selectedLevel, setSelectedLevel] = useState("junior");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -25,30 +27,77 @@ export default function SpeechToTextPage() {
   );
 
   /* ================= INIT CAMERA ================= */
+  // Only perform cleanup on unmount
   useEffect(() => {
-    if (selectedQuestionId) recorder.initCamera();
-    return recorder.stop;
-  }, [selectedQuestionId]);
+    return () => recorder.stop();
+  }, []);
 
   /* ================= FETCH QUESTIONS ================= */
   useEffect(() => {
     (async () => {
       try {
         const data = await fetchLevel(selectedLevel);
-        setQuestions(data.list_pertanyaan || []);
-        setSelectedQuestionId(null);
+        const list = data.list_pertanyaan || [];
+        setQuestions(list);
+        // auto-select first question and prevent user from changing it
+        setSelectedQuestionId(list.length > 0 ? list[0].question_id : null);
       } catch {
         setQuestions([]);
+        setSelectedQuestionId(null);
       }
     })();
   }, [selectedLevel]);
 
-  /* ================= UPLOAD ================= */
+  /* ================= UPLOAD / SEGMENT ================= */
   const uploadRecorded = async () => {
-    if (!recorder.previewURL || !selectedQuestionId) return;
+    if (!recorder.previewURL) return;
     const blob = await fetch(recorder.previewURL).then(r => r.blob());
-    await uploadSingle(blob, "interview.webm", selectedQuestionId, selectedLevel);
+    const segments = recorder.getSegments ? (recorder.getSegments().length ? recorder.getSegments() : undefined) : undefined;
+    await uploadSingle(blob, "interview.webm", undefined, selectedLevel, segments);
+    // clear segments in hook
+    recorder.clearSegments?.();
   };
+
+  // handle start via hook
+  const handleStart = async () => {
+    await recorder.start();
+  };
+
+  // next or finish handled by hook; after calling nextSegment, update UI selectedQuestion
+  const handleNextOrFinish = async () => {
+    if (!recorder || recorder.mode !== "recording" || !selectedQuestionId) return;
+
+    const idx = questions.findIndex(q => q.question_id === selectedQuestionId);
+    const isLast = idx === questions.length - 1;
+
+    await recorder.nextSegment(selectedQuestionId, isLast);
+
+    if (!isLast) {
+      const next = questions[idx + 1];
+      setSelectedQuestionId(next.question_id);
+    }
+  };
+
+  const currentIdx = questions.findIndex(q => q.question_id === selectedQuestionId);
+  const isLast = currentIdx >= 0 && currentIdx === questions.length - 1;
+
+  // when the hook reports the recorder is in review and finishing was requested, upload final video + segments
+  useEffect(() => {
+    if (recorder.mode !== "review") return;
+    if (!recorder.finishing) return;
+
+    (async () => {
+      try {
+        const blob = await recorder.getRecordingBlob();
+        const segments = recorder.getSegments().length ? recorder.getSegments() : undefined;
+        await uploadSingle(blob, "interview.webm", undefined, selectedLevel, segments);
+      } catch (e) {
+        console.error("Gagal upload final:", e);
+      } finally {
+        recorder.clearSegments?.();
+      }
+    })();
+  }, [recorder.mode, recorder.finishing]);
 
   return (
     <main className={styles.page}>
@@ -77,6 +126,7 @@ export default function SpeechToTextPage() {
               <input
                 type="radio"
                 checked={q.question_id === selectedQuestionId}
+                disabled
                 onChange={() => setSelectedQuestionId(q.question_id)}
               />
               {q.pertanyaan}
@@ -105,7 +155,7 @@ export default function SpeechToTextPage() {
 
           <div className={styles.controls}>
             {recorder.mode === "preview" && (
-              <button onClick={recorder.start}>▶ Start</button>
+              <button onClick={handleStart}>▶ Start</button>
             )}
 
             {recorder.mode === "recording" && !recorder.paused && (
@@ -117,7 +167,9 @@ export default function SpeechToTextPage() {
             )}
 
             {recorder.mode === "recording" && (
-              <button onClick={recorder.stop}>⏹ Stop</button>
+              <>
+                <button onClick={handleNextOrFinish}>{isLast ? "Finish" : "Next Question"}</button>
+              </>
             )}
 
             {recorder.mode === "review" && (
