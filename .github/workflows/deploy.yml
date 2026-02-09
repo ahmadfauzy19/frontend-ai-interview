@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
@@ -25,16 +22,13 @@ jobs:
           VM_HOST: ${{ secrets.VM_HOST }}
           VM_USER: ${{ secrets.VM_USER }}
         run: |
-          # Sync frontend files to VM
-          rsync -avz --delete \
-            --exclude 'node_modules' \
-            --exclude '.git' \
-            --exclude 'dist' \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            ./ ${VM_USER}@${VM_HOST}:/opt/ai-interview/frontend-ai-interview/
-
-          # Rebuild and restart only frontend container
           ssh -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} << 'ENDSSH'
+            cd /opt/ai-interview/frontend-ai-interview
+            
+            # Pull latest code from GitHub
+            git pull origin development
+            
+            # Rebuild and restart frontend container
             cd /opt/ai-interview
             docker compose build frontend
             docker compose up -d frontend
