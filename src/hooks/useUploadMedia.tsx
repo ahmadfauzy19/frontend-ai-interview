@@ -38,12 +38,13 @@ export function useUploadMedia() {
     blob: Blob,
     filename: string,
     questionId?: string,
-    level?: string
+    level?: string,
+    segments?: { questionId: string; start: number; end?: number }[]
   ) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await uploadSingleMedia(blob, filename, questionId, level);
+      const res = await uploadSingleMedia(blob, filename, questionId, level, segments);
       setResult(res);
       return res;
     } catch (e) {

@@ -53,12 +53,23 @@ export const uploadSingleMedia = async (
   blob: Blob,
   filename = "file",
   questionId?: string,
-  level?: string
+  level?: string,
+  segments?: { questionId: string; start: number; end?: number }[]
 ): Promise<UploadResponse> => {
   const form = new FormData();
   form.append("file", blob, filename);
   if (questionId) form.append("questionId", questionId);
   if (level) form.append("level", level);
+  if (segments && segments.length > 0) {
+    // form.append("segments", JSON.stringify(segments));
+    form.append(
+      "segments",
+      new Blob(
+        [JSON.stringify({ items: segments })],
+        { type: "application/json" }
+      )
+    );
+  }
 
   const response = await fetch(`${API_BASE}/media/upload`, {
     method: "POST",
