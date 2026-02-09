@@ -1,0 +1,149 @@
+/* ================= PAGE ================= */
+.page {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= HEADER ================= */
+.header {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* ================= LAYOUT ================= */
+.layout {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  overflow: hidden;
+  min-height: 550px;
+}
+
+/* ================= LEFT PANEL ================= */
+.leftPanel {
+  width: 360px;
+  padding: 24px;
+  background: #f7f9fb;
+  border-radius: 16px;
+  overflow-y: auto;
+}
+
+.leftPanel h3 {
+  margin-top: 0;
+}
+
+.questionItem {
+  display: block;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.activeQuestion {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #eef2ff;
+  font-weight: 500;
+}
+
+/* ================= VIDEO PANEL ================= */
+.videoPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* VIDEO AREA */
+.videoWrapper {
+  flex: 1;
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: black;
+}
+
+.videoWrapper video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 biar full kaya Zoom */
+  background: black;
+}
+
+/* TIMER */
+.timer {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  color: white;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* CONTROLS */
+.controls {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.controls button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+}
+
+.controls button:hover {
+  background: #1e40af;
+}
+
+/* ================= RESULT ================= */
+.resultBox {
+  margin: 24px;
+  padding: 16px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.resultBox pre {
+  margin: 0;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  overflow-x: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.loading {
+  margin: 16px;
+  font-weight: 500;
+}
+
+.error {
+  margin: 16px;
+  color: red;
+}

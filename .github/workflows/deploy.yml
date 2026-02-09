@@ -1,0 +1,47 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Frontend to VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          # Sync frontend files to VM
+          rsync -avz --delete \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude 'dist' \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./ ${VM_USER}@${VM_HOST}:/opt/ai-interview/frontend-ai-interview/
+
+          # Rebuild and restart only frontend container
+          ssh -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} << 'ENDSSH'
+            cd /opt/ai-interview
+            docker compose build frontend
+            docker compose up -d frontend
+            docker compose ps
+          ENDSSH
+
+      - name: Health Check
+        run: |
+          sleep 20
+          curl -f https://ai-interview.jiwamu.de/ || echo "Health check warning"
