@@ -1,5 +1,4 @@
 import { Layout} from "antd";
-import { DownOutlined } from "@ant-design/icons";
 import logo from "../../assets/img/logo_79_copy.png";
 import "../../assets/style/headerComponentStyle.css";
 
@@ -39,7 +38,6 @@ const HeaderComponent = (props: HeaderProps) => {
       {/* Right: User Name */}
       <div className="right-section">
         <span className="user-name">{userName || "Guest"}</span>
-        {/* <DownOutlined className="dropdown-icon" /> */}
       </div>
     </Header>
   );
