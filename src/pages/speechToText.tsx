@@ -1,28 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "../assets/style/speechToText.module.css";
 import { fetchLevel } from "../services/mediaService";
-import type { Level, Question } from "../services/mediaService";
+import type { Question } from "../services/mediaService";
 import { useVideoRecorder } from "../hooks/useVideoRecorder";
 import { useUploadMedia } from "../hooks/useUploadMedia";
+import { useInterview } from "../contexts/interviewContext";
 
-const STATIC_LEVELS: Pick<Level, "_id" | "level">[] = [
-  { _id: "junior", level: "JUNIOR" },
-  { _id: "middle", level: "MIDDLE" },
-  { _id: "senior", level: "SENIOR" },
-];
+import AppLayout from "./appLayout";
 
 
 
 export default function SpeechToTextPage() {
-  const [selectedLevel, setSelectedLevel] = useState("junior");
+  const { level, name } = useInterview();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [answersMap, setAnswersMap] = useState<Record<string, number>>({});
+
 
   const recorder = useVideoRecorder();
   const { uploadSingle, loading, result, error } = useUploadMedia();
 
   const selectedQuestion = useMemo(
-    () => questions.find(q => q.question_id === selectedQuestionId),
+    () => questions.find(q => q.questionId === selectedQuestionId),
     [questions, selectedQuestionId]
   );
 
@@ -36,24 +35,37 @@ export default function SpeechToTextPage() {
   useEffect(() => {
     (async () => {
       try {
-        const data = await fetchLevel(selectedLevel);
-        const list = data.list_pertanyaan || [];
+        const data = await fetchLevel(level);
+        const list = data.questions || [];
         setQuestions(list);
         // auto-select first question and prevent user from changing it
-        setSelectedQuestionId(list.length > 0 ? list[0].question_id : null);
-      } catch {
+        setSelectedQuestionId(list.length > 0 ? list[0].questionId : null);
+      } catch (e) {
+        console.error("Failed to fetch level data:", e);
         setQuestions([]);
         setSelectedQuestionId(null);
       }
     })();
-  }, [selectedLevel]);
+  }, [level]);
+
+  useEffect(() => {
+    if (!result?.listAnswers) return;
+
+    const map: Record<string, number> = {};
+    result.listAnswers.forEach((item: any) => {
+      map[item.questionId] = item.score;
+    });
+
+    setAnswersMap(map);
+  }, [result]);
+
 
   /* ================= UPLOAD / SEGMENT ================= */
   const uploadRecorded = async () => {
     if (!recorder.previewURL) return;
     const blob = await fetch(recorder.previewURL).then(r => r.blob());
     const segments = recorder.getSegments ? (recorder.getSegments().length ? recorder.getSegments() : undefined) : undefined;
-    await uploadSingle(blob, "interview.webm", undefined, selectedLevel, segments);
+    await uploadSingle(name,blob, "interview.webm", undefined, level, segments);
     // clear segments in hook
     recorder.clearSegments?.();
   };
@@ -67,129 +79,148 @@ export default function SpeechToTextPage() {
   const handleNextOrFinish = async () => {
     if (!recorder || recorder.mode !== "recording" || !selectedQuestionId) return;
 
-    const idx = questions.findIndex(q => q.question_id === selectedQuestionId);
+    const idx = questions.findIndex(q => q.questionId === selectedQuestionId);
     const isLast = idx === questions.length - 1;
 
     await recorder.nextSegment(selectedQuestionId, isLast);
 
     if (!isLast) {
       const next = questions[idx + 1];
-      setSelectedQuestionId(next.question_id);
+      setSelectedQuestionId(next.questionId);
     }
   };
 
-  const currentIdx = questions.findIndex(q => q.question_id === selectedQuestionId);
+  const currentIdx = questions.findIndex(q => q.questionId === selectedQuestionId);
   const isLast = currentIdx >= 0 && currentIdx === questions.length - 1;
 
-  // when the hook reports the recorder is in review and finishing was requested, upload final video + segments
-  useEffect(() => {
-    if (recorder.mode !== "review") return;
-    if (!recorder.finishing) return;
-
-    (async () => {
-      try {
-        const blob = await recorder.getRecordingBlob();
-        const segments = recorder.getSegments().length ? recorder.getSegments() : undefined;
-        await uploadSingle(blob, "interview.webm", undefined, selectedLevel, segments);
-      } catch (e) {
-        console.error("Gagal upload final:", e);
-      } finally {
-        recorder.clearSegments?.();
-      }
-    })();
-  }, [recorder.mode, recorder.finishing]);
-
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <h1>AI INTERVIEW</h1>
-
-        <select
-          value={selectedLevel}
-          onChange={e => setSelectedLevel(e.target.value)}
-        >
-          {STATIC_LEVELS.map(l => (
-            <option key={l._id} value={l._id}>
-              {l.level}
-            </option>
-          ))}
-        </select>
-      </header>
-
-      <section className={styles.layout}>
-        {/* ================= LEFT ================= */}
-        <aside className={styles.leftPanel}>
-          <h3>Pertanyaan</h3>
-
-          {questions.map(q => (
-            <label key={q.question_id} className={styles.questionItem}>
-              <input
-                type="radio"
-                checked={q.question_id === selectedQuestionId}
-                disabled
-                onChange={() => setSelectedQuestionId(q.question_id)}
-              />
-              {q.pertanyaan}
-            </label>
-          ))}
-
-          {selectedQuestion && (
-            <div className={styles.activeQuestion}>
-              {selectedQuestion.pertanyaan}
+    <AppLayout title="Interview">
+      <main className={styles.page}>
+        {result && (
+          <div className={styles.summaryBar}>
+            <div>Hasil Interview : </div>
+            <div className={styles.avgScore}>
+              Rata-Rata Skor: {result.score}
             </div>
-          )}
-        </aside>
-
-        {/* ================= RIGHT ================= */}
-        <section className={styles.videoPanel}>
-          <div className={styles.videoWrapper}>
-            <video
-              ref={recorder.videoRef}
-              autoPlay
-              playsInline
-              muted={recorder.mode !== "review"}
-            />
-
-            <div className={styles.timer}>{recorder.seconds}s</div>
           </div>
+        )}
+        <section className={styles.layout}>
+          {/* ================= LEFT ================= */}
+          <aside className={styles.leftPanel}>
+            <h3>Pertanyaan</h3>
+            {questions.map((q, index) => {
+              const score = answersMap[q.questionId];
+              const isAnswered = score !== undefined;
 
-          <div className={styles.controls}>
-            {recorder.mode === "preview" && (
-              <button onClick={handleStart}>▶ Start</button>
+              return (
+                <div
+                  key={q.questionId}
+                  className={`${styles.questionTab} 
+                    ${q.questionId === selectedQuestionId ? styles.activeTab : ""}
+                  `}
+                  onClick={() => {
+                    if (isAnswered) setSelectedQuestionId(q.questionId);
+                  }}
+                >
+                  <div className={styles.questionLeft}>
+                    <span className={styles.questionNumber}>
+                      {index + 1}.
+                    </span>
+
+                    <span className={styles.questionText}>
+                      {q.question}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </aside>
+
+          {/* ================= RIGHT ================= */}
+          <section className={styles.videoPanel}>
+            {/* QUESTION HEADER */}
+            {selectedQuestion && (
+              <div className={styles.currentQuestion}>
+                <span>{selectedQuestion.question}</span>
+
+                {answersMap[selectedQuestion.questionId] !== undefined && (
+                  <span className={styles.currentScore}>
+                    Score: {answersMap[selectedQuestion.questionId]}
+                  </span>
+                )}
+              </div>
             )}
 
-            {recorder.mode === "recording" && !recorder.paused && (
-              <button onClick={recorder.pause}>⏸ Pause</button>
+            {/* VIDEO */}
+            <div className={styles.videoWrapper}>
+              <video
+                ref={recorder.videoRef}
+                autoPlay
+                playsInline
+                muted={recorder.mode !== "review"}
+              />
+              <div className={styles.timer}>{recorder.seconds}s</div>
+            </div>
+
+            {/* CONTROLS */}
+            <div className={styles.controls}>
+              {recorder.mode === "preview" && (
+                <button onClick={handleStart}>▶ Start</button>
+              )}
+
+              {recorder.mode === "recording" && !recorder.paused && (
+                <button onClick={recorder.pause}>⏸ Pause</button>
+              )}
+
+              {recorder.mode === "recording" && recorder.paused && (
+                <button onClick={recorder.resume}>▶ Resume</button>
+              )}
+
+              {recorder.mode === "recording" && (
+                <button onClick={handleNextOrFinish}>
+                  {isLast ? "Finish" : "Next Question"}
+                </button>
+              )}
+
+              {recorder.mode === "review" && (
+                <button
+                  onClick={() => uploadRecorded()}
+                  disabled={!!result}   // ✅ disable jika sudah ada result
+                  className={result ? styles.disabledBtn : ""}
+                >
+                  ⬆ Upload Rekaman
+                </button>
+              )}
+            </div>
+
+            {/* ANSWER BELOW VIDEO */}
+      
+            {selectedQuestion &&
+              answersMap[selectedQuestion.questionId] !== undefined && (
+                <>
+                  <div className={styles.sectionDivider}></div>
+
+                  <div className={styles.answerSection}>
+                    <div className={styles.answerLabel}>Jawaban :</div>
+                    <div className={styles.currentAnswer}>
+                      {
+                        result?.listAnswers?.find(
+                          a => a.questionId === selectedQuestion.questionId
+                        )?.answerText || "-"
+                      }
+                    </div>
+                  </div>
+                </>
             )}
 
-            {recorder.mode === "recording" && recorder.paused && (
-              <button onClick={recorder.resume}>▶ Resume</button>
-            )}
+          </section>
 
-            {recorder.mode === "recording" && (
-              <>
-                <button onClick={handleNextOrFinish}>{isLast ? "Finish" : "Next Question"}</button>
-              </>
-            )}
-
-            {recorder.mode === "review" && (
-              <button onClick={uploadRecorded}>⬆ Upload Rekaman</button>
-            )}
-          </div>
         </section>
-      </section>
 
-      {/* ================= RESULT ================= */}
-      {loading && <div className={styles.loading}>⏳ Menilai jawaban…</div>}
-      {error && <div className={styles.error}>{error}</div>}
-
-      {result && (
-        <div className={styles.resultBox}>
-          <h3>{result.message}</h3>
-          <p><b>Score:</b> {result.score}</p>
-          <pre>{result.transcript}</pre>
-        </div>
-      )}
-    </main>
+        {/* ================= RESULT ================= */}
+        {loading && <div className={styles.loading}>⏳ Menilai jawaban…</div>}
+        {error && <div className={styles.error}>{error}</div>}
+      </main>
+    </AppLayout>
   );
 }
