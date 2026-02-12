@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { uploadMediaFiles, uploadSingleMedia } from "../services/mediaService";
+import type { UploadResponse } from "../dto/answerResponseDto";
 
-export type UploadResult = {
-  message: string;
-  transcript: string;
-  questionId?: string;
-  level?: string;
-  score?: number;
-};
 
 export function useUploadMedia() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<UploadResult | null>(null);
+  const [result, setResult] = useState<UploadResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const uploadFiles = async (
@@ -35,6 +29,7 @@ export function useUploadMedia() {
   };
 
   const uploadSingle = async (
+    name: string,
     blob: Blob,
     filename: string,
     questionId?: string,
@@ -44,7 +39,7 @@ export function useUploadMedia() {
     setLoading(true);
     setError(null);
     try {
-      const res = await uploadSingleMedia(blob, filename, questionId, level, segments);
+      const res = await uploadSingleMedia(name ,blob, filename, questionId, level, segments);
       setResult(res);
       return res;
     } catch (e) {

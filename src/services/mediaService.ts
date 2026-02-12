@@ -1,28 +1,29 @@
-export type UploadResponse = {
-  transcript: string;
-  message: string;
+import type { UploadResponse } from "../dto/answerResponseDto";
+
+export type RubricItem = {
+  description: string;
+  keywords: string[];
 };
 
 export type Question = {
-  question_id: string;
-  pertanyaan: string;
-  rubrik_penilaian: Record<string, string>;
-  jawaban_karyawan: string;
+  questionId: string;
+  question: string;
+  rubrics: Record<string, RubricItem>;
 };
 
 export type Level = {
-  _id: string;
+  _id?: string;
   level: string;
   role: string;
   technology: string;
-  list_pertanyaan: Question[];
+  questions: Question[];
 };
 
 const API_BASE = import.meta.env?.VITE_API_BASE;
 
 if (!API_BASE) {
   throw new Error("API_BASE is not defined in environment variables");
-}
+} 
 
 export const uploadMediaFiles = async (
   files: File[] | Blob[],
@@ -50,6 +51,7 @@ export const uploadMediaFiles = async (
 };
 
 export const uploadSingleMedia = async (
+  name: string,
   blob: Blob,
   filename = "file",
   questionId?: string,
@@ -58,16 +60,13 @@ export const uploadSingleMedia = async (
 ): Promise<UploadResponse> => {
   const form = new FormData();
   form.append("file", blob, filename);
+  form.append("candidateName", name);
   if (questionId) form.append("questionId", questionId);
   if (level) form.append("level", level);
   if (segments && segments.length > 0) {
-    // form.append("segments", JSON.stringify(segments));
     form.append(
       "segments",
-      new Blob(
-        [JSON.stringify({ items: segments })],
-        { type: "application/json" }
-      )
+      new Blob([JSON.stringify({ items: segments })], { type: "application/json" })
     );
   }
 
